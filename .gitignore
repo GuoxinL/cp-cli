@@ -1,0 +1,4 @@
+.idea
+go_build_main_go
+cp-cli
+go_build_cp_cli_
