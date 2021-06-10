@@ -79,7 +79,7 @@ func Checkout(branch string) bool {
 }
 
 func DeleteBranch(branch string) bool {
-	_, err := CMDWrapper(`git branch -d ` + branch)
+	_, err := CMDWrapper(`git branch -d` + branch)
 	return err != nil
 
 }
@@ -112,7 +112,7 @@ func getCommits(sourceBranch, keyword string) []Commit {
 	if len(lines) == 0 {
 		ConsoleError("未检索到符合 keyword: "+keyword+"的 commit", 1)
 	}
-	var commits = make([]Commit, len(lines)-2)
+	var commits = make([]Commit, len(lines)-1)
 	lines = lines[:len(lines)-2]
 	for _, line := range lines {
 		commitLine := strings.Split(line, " ")
