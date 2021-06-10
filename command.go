@@ -79,7 +79,7 @@ func Checkout(branch string) bool {
 }
 
 func DeleteBranch(branch string) bool {
-	_, err := CMDWrapper(`git branch -d` + branch)
+	_, err := CMDWrapper(`git branch -d ` + branch)
 	return err != nil
 
 }
@@ -114,7 +114,7 @@ func getCommits(sourceBranch, keyword string) []Commit {
 	}
 	var commits = make([]Commit, len(lines)-1)
 	lines = lines[:len(lines)-1]
-	for _, line := range lines {
+	for i, line := range lines {
 		commitLine := strings.Split(line, " ")
 		commit := &Commit{}
 		commit.Id = commitLine[0]
@@ -123,7 +123,7 @@ func getCommits(sourceBranch, keyword string) []Commit {
 		commit.Name = commitLine[2]
 		description := strings.Replace(strings.Trim(fmt.Sprint(commitLine[3:]), "[]"), " ", " ", -1)
 		commit.Description = description
-		commits = append(commits, *commit)
+		commits[i] = *commit
 	}
 	return commits
 }
