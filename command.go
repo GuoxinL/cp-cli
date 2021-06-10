@@ -106,9 +106,12 @@ func GitStatus() Status {
 func getCommits(sourceBranch, keyword string) []Commit {
 	result, err := CMDWrapper(`git log ` + sourceBranch + ` --oneline --reverse --pretty=format:"%h %ad %an %s" --date=format:"%Y-%m-%dT%H:%M:%S" --grep="` + keyword + `"`)
 	if err != nil {
-		os.Exit(0)
+		ConsoleError(err.Error(), 1)
 	}
 	lines := lines(result)
+	if len(lines) == 0 {
+		ConsoleError("未检索到符合 keyword: "+keyword+"的 commit", 1)
+	}
 	var commits = make([]Commit, len(lines)-2)
 	lines = lines[:len(lines)-2]
 	for _, line := range lines {

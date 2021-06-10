@@ -35,17 +35,17 @@ func getParameters() (string, string, string) {
 
 	flag.Parse()
 	if empty(*sourceBranch) {
-		PanicError(`source branch is required`, 1)
+		ConsoleError(`source branch is required`, 1)
 	} else {
 		Console(`source branch: ` + *sourceBranch)
 	}
 	if empty(*targetBranch) {
-		PanicError(`target branch is required`, 1)
+		ConsoleError(`target branch is required`, 1)
 	} else {
 		Console(`target branch: ` + *targetBranch)
 	}
 	if empty(*keyword) {
-		PanicError(`keyword is required`, 1)
+		ConsoleError(`keyword is required`, 1)
 	} else {
 		Console(`keyword: ` + *keyword)
 	}

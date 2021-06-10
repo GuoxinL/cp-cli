@@ -28,7 +28,7 @@ func Console(s string) {
 	fmt.Println(CMDPrefix + " " + s)
 }
 
-func PanicError(s string, code int) {
+func ConsoleError(s string, code int) {
 	commandError := CommandError{
 		err:  s,
 		code: code,
