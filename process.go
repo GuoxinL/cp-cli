@@ -54,6 +54,9 @@ func Process(sourceBranch, targetBranch, keyword string) {
 	if len(commits) == 0 {
 		ConsoleError(fmt.Sprintf("检出新分支 %v 异常", newBranch), 1)
 	}
+	for _, commit := range commits {
+		CherryPick(commit.Id)
+	}
 	marshal, _ := json.Marshal(commits)
 	Console(string(marshal))
 	// 阶段

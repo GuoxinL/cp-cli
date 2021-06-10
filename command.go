@@ -104,7 +104,7 @@ func GitStatus() Status {
 }
 
 func getCommits(sourceBranch, keyword string) []Commit {
-	result, err := CMDWrapper(`git log ` + sourceBranch + ` --oneline --reverse --pretty=format:"%h %ad %an %s" --date=format:"%Y-%m-%dT%H:%M:%S" --grep="` + keyword + `"`)
+	result, err := CMDWrapper(`git log ` + sourceBranch + ` --oneline --reverse --pretty=format:"%h|%ad|%an|%s" --date=format:"%Y-%m-%d %H:%M:%S" --grep="` + keyword + `"`)
 	if err != nil {
 		ConsoleError(err.Error(), 1)
 	}
@@ -115,15 +115,22 @@ func getCommits(sourceBranch, keyword string) []Commit {
 	var commits = make([]Commit, len(lines)-1)
 	lines = lines[:len(lines)-1]
 	for i, line := range lines {
-		commitLine := strings.Split(line, " ")
+		commitLine := strings.Split(line, "|")
+		parse, _ := time.Parse("2006-01-02 15:04:05", commitLine[1])
 		commit := &Commit{}
 		commit.Id = commitLine[0]
-		parse, _ := time.Parse("2006-01-02T15:04:05", commitLine[1])
 		commit.Time = parse
 		commit.Name = commitLine[2]
-		description := strings.Replace(strings.Trim(fmt.Sprint(commitLine[3:]), "[]"), " ", " ", -1)
-		commit.Description = description
+		commit.Description = commitLine[3]
 		commits[i] = *commit
 	}
 	return commits
+}
+
+func CherryPick(commitId string) bool {
+	_, err := CMDWrapper(` git cherry-pick ` + commitId)
+	if err != nil {
+		ConsoleError(err.Error(), 1)
+	}
+	return true
 }
