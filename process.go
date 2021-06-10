@@ -42,7 +42,7 @@ func Process(sourceBranch, targetBranch, keyword string) {
 		ConsoleError(`检出源分支异常，目标分支 `+targetBranch+` 不存在`, 1)
 	}
 	// 创建并且检出分支 {source branch}_{keyword}_{target-branch}_{yyyyMMdd}
-	newBranch := fmt.Sprintf("%v_to_%v_%v_%v", sourceBranch, targetBranch, keyword, getTime())
+	newBranch = fmt.Sprintf("%v_to_%v_%v_%v", sourceBranch, targetBranch, keyword, getTime())
 	if CreateBranch(newBranch) {
 		ConsoleError(`创建分支异常，新分支 `+newBranch, 1)
 	}
