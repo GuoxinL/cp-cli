@@ -113,7 +113,7 @@ func getCommits(sourceBranch, keyword string) []Commit {
 		ConsoleError("未检索到符合 keyword: "+keyword+"的 commit", 1)
 	}
 	var commits = make([]Commit, len(lines)-1)
-	lines = lines[:len(lines)-2]
+	lines = lines[:len(lines)-1]
 	for _, line := range lines {
 		commitLine := strings.Split(line, " ")
 		commit := &Commit{}
