@@ -64,5 +64,6 @@ func Process(sourceBranch, targetBranch, keyword string) {
 	// git log master --oneline --reverse | grep "TOERP-0"
 	//`git log master --oneline --reverse --grep="TOERP-0"`
 	//
+	ConsoleError(fmt.Sprintf("结束", newBranch), 1)
 
 }
