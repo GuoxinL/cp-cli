@@ -79,7 +79,7 @@ func Checkout(branch string) bool {
 }
 
 func DeleteBranch(branch string) bool {
-	_, err := CMDWrapper(`git branch -d` + branch)
+	_, err := CMDWrapper(`git branch -d ` + branch)
 	return err != nil
 
 }
