@@ -132,12 +132,14 @@ func getCommits(sourceBranch, keyword string) []Commit {
 	return commits
 }
 
+var xxx syscall.WaitStatus = 0x100
+
 func CherryPick(commitId string) bool {
 	result, err := CMDWrapper(`git cherry-pick `+commitId, nil, &bytes.Buffer{}, &bytes.Buffer{})
 	if err != nil {
 		exitError, ok := err.(*exec.ExitError)
 		if ok {
-			if exitError.ProcessState.Sys() == 256 {
+			if exitError.ProcessState.Sys() == xxx {
 				Console("合并%v过程中发生冲突", 1, commitId)
 			} else {
 				ConsoleError(err.Error(), 1)
