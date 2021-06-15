@@ -4,7 +4,9 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 )
@@ -24,13 +26,25 @@ func (c CommandError) Console() {
 }
 
 // Console 输出
-func Console(s string) {
-	fmt.Println(CMDPrefix + " " + s)
+func Console(s string, a ...interface{}) {
+	str := ""
+	if len(a) != 0 {
+		str = fmt.Sprintf(s, a)
+	} else {
+		str = s
+	}
+	fmt.Println(CMDPrefix + " " + str)
 }
 
-func ConsoleError(s string, code int) {
+func ConsoleError(s string, code int, a ...interface{}) {
+	str := ""
+	if len(a) != 0 {
+		str = fmt.Sprintf(s, a)
+	} else {
+		str = s
+	}
 	commandError := CommandError{
-		err:  s,
+		err:  str,
 		code: code,
 	}
 	panic(commandError)
@@ -50,4 +64,26 @@ func lines(str string) []string {
 		return []string{}
 	}
 	return strings.Split(str, "\n")
+}
+
+type StdFuncs map[string]func() bool
+
+func stdinReader(stdFuncs StdFuncs) bool {
+	var keywords []string
+	for keyword, _ := range stdFuncs {
+		keywords = append(keywords, keyword)
+	}
+
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		in, _ := reader.ReadString('\n')
+		// convert CRLF to LF
+		in = strings.TrimSpace(strings.Replace(in, "\n", "", -1))
+
+		for keyword, f := range stdFuncs {
+			if in == keyword {
+				return f()
+			}
+		}
+	}
 }

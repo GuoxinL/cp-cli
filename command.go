@@ -6,12 +6,16 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
 	"syscall"
 	"time"
 )
+
+// ConflictsString 异常 cherry-pick
+const ConflictsString = "error: could not apply"
 
 type Commit struct {
 	Id          string
@@ -26,10 +30,10 @@ type Status struct {
 }
 
 //CMDWrapper 执行命令并输出日志 See CMD
-func CMDWrapper(command string) (result string, err error) {
+func CMDWrapper(command string, stdin, stdout, stderr io.Writer) (result string, err error) {
 	fmt.Println()
 	Console("command: " + command)
-	result, err = CMD(command)
+	result, err = CMD(command, stdin, stdout, stderr)
 	Console("result: \n" + result)
 	if err != nil {
 		Console("err: " + err.Error())
@@ -39,7 +43,7 @@ func CMDWrapper(command string) (result string, err error) {
 }
 
 // CMD 执行命令
-func CMD(command string) (result string, err error) {
+func CMD(command string, stdin, stdout, stderr io.Writer) (result string, err error) {
 	comm := exec.Command(`bash`, `-c`, command)
 	out := bytes.Buffer{}
 	err0 := bytes.Buffer{}
@@ -74,25 +78,26 @@ func CMD(command string) (result string, err error) {
 }
 
 func Checkout(branch string) bool {
-	_, err := CMDWrapper(`git checkout ` + branch)
+
+	_, err := CMDWrapper(`git checkout `+branch, nil, &bytes.Buffer{}, &bytes.Buffer{})
 	return err != nil
 }
 
 func DeleteBranch(branch string) bool {
-	_, err := CMDWrapper(`git branch -d ` + branch)
+	_, err := CMDWrapper(`git branch -d `+branch, nil, &bytes.Buffer{}, &bytes.Buffer{})
 	return err != nil
 
 }
 
 // CreateBranch git branch {branch name}
 func CreateBranch(branch string) bool {
-	_, err := CMDWrapper(`git branch ` + branch)
+	_, err := CMDWrapper(`git branch `+branch, nil, &bytes.Buffer{}, &bytes.Buffer{})
 	return err != nil
 }
 
 func GitStatus() Status {
 	const nothingToCommit = "nothing to commit, working tree clean"
-	result, err := CMDWrapper(`git status`)
+	result, err := CMDWrapper(`git status`, nil, &bytes.Buffer{}, &bytes.Buffer{})
 	if err != nil {
 		os.Exit(0)
 	}
@@ -104,7 +109,7 @@ func GitStatus() Status {
 }
 
 func getCommits(sourceBranch, keyword string) []Commit {
-	result, err := CMDWrapper(`git log ` + sourceBranch + ` --oneline --reverse --pretty=format:"%h|%ad|%an|%s" --date=format:"%Y-%m-%d %H:%M:%S" --grep="` + keyword + `"`)
+	result, err := CMDWrapper(`git log `+sourceBranch+` --oneline --reverse --pretty=format:"%h|%ad|%an|%s" --date=format:"%Y-%m-%d %H:%M:%S" --grep="`+keyword+`"`, nil, &bytes.Buffer{}, &bytes.Buffer{})
 	if err != nil {
 		ConsoleError(err.Error(), 1)
 	}
@@ -128,9 +133,41 @@ func getCommits(sourceBranch, keyword string) []Commit {
 }
 
 func CherryPick(commitId string) bool {
-	_, err := CMDWrapper(` git cherry-pick ` + commitId)
+	result, err := CMDWrapper(` git cherry-pick `+commitId, nil, &bytes.Buffer{}, &bytes.Buffer{})
+	if err != nil {
+		ConsoleError(err.Error(), 1)
+	}
+	lines := lines(result)
+	lines = lines[:len(lines)-1]
+	return !strings.HasPrefix(lines[0], ConflictsString)
+}
+
+func CherryPickContinue() bool {
+	_, err := CMDWrapper(`git cherry-pick --continue`, nil, &bytes.Buffer{}, &bytes.Buffer{})
+	if err != nil {
+		ConsoleError(err.Error(), 1)
+	}
+	return false
+}
+
+func CherryPickAbort() bool {
+	_, err := CMDWrapper(`git cherry-pick --abort`, nil, &bytes.Buffer{}, &bytes.Buffer{})
 	if err != nil {
 		ConsoleError(err.Error(), 1)
 	}
 	return true
+}
+
+func AddAll() {
+	_, err := CMDWrapper(`git add .`, nil, &bytes.Buffer{}, &bytes.Buffer{})
+	if err != nil {
+		ConsoleError(err.Error(), 1)
+	}
+}
+
+func GitCommit() {
+	_, err := CMDWrapper(`git commit`, os.Stdin, os.Stdout, os.Stderr)
+	if err != nil {
+		ConsoleError(err.Error(), 1)
+	}
 }

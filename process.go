@@ -39,23 +39,35 @@ func Process(sourceBranch, targetBranch, keyword string) {
 	currentBranch = status.Branch
 	// 检出源分支
 	if Checkout(targetBranch) {
-		ConsoleError(`检出源分支异常，目标分支 `+targetBranch+` 不存在`, 1)
+		ConsoleError(`检出源分支异常，目标分支 %v 不存在`, 1, targetBranch)
 	}
 	// 创建并且检出分支 {source branch}_{keyword}_{target-branch}_{yyyyMMdd}
 	newBranch = fmt.Sprintf("%v_to_%v_%v_%v", sourceBranch, targetBranch, keyword, getTime())
 	if CreateBranch(newBranch) {
-		ConsoleError(`创建分支异常，新分支 `+newBranch, 1)
+		ConsoleError(`创建分支异常，新分支 %v`, 1, newBranch)
 	}
 	// 检出新目标分支
 	if Checkout(newBranch) {
-		ConsoleError(fmt.Sprintf("检出新分支 %v 异常", newBranch), 1)
+		ConsoleError("检出新分支 %v 异常", 1, newBranch)
 	}
 	commits := getCommits(sourceBranch, keyword)
 	if len(commits) == 0 {
-		ConsoleError(fmt.Sprintf("检出新分支 %v 异常", newBranch), 1)
+		ConsoleError("检出新分支 %v 异常", 1, newBranch)
 	}
 	for _, commit := range commits {
-		CherryPick(commit.Id)
+		if CherryPick(commit.Id) {
+			Console("Cherry-Pick 遇到冲突请处理...")
+			Console("处理完成请输入：continue")
+			Console("退出请输入：abort")
+			stdinReader(StdFuncs{
+				"continue": CherryPickContinue,
+				"abort":    CherryPickAbort,
+			})
+			// git add .
+			AddAll()
+			// git commit
+			GitCommit()
+		}
 	}
 	marshal, _ := json.Marshal(commits)
 	Console(string(marshal))
@@ -67,6 +79,6 @@ func Process(sourceBranch, targetBranch, keyword string) {
 	// git log master --oneline --reverse | grep "TOERP-0"
 	//`git log master --oneline --reverse --grep="TOERP-0"`
 	//
-	ConsoleError(fmt.Sprintf("结束", newBranch), 1)
+	ConsoleError("结束", 1)
 
 }
