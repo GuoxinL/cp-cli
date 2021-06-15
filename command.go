@@ -133,10 +133,20 @@ func getCommits(sourceBranch, keyword string) []Commit {
 }
 
 func CherryPick(commitId string) bool {
-	result, err := CMDWrapper(` git cherry-pick `+commitId, nil, &bytes.Buffer{}, &bytes.Buffer{})
+	result, err := CMDWrapper(`git cherry-pick `+commitId, nil, &bytes.Buffer{}, &bytes.Buffer{})
 	if err != nil {
-		ConsoleError(err.Error(), 1)
+		exitError, ok := err.(*exec.ExitError)
+		if ok {
+			if exitError.ProcessState.Sys() == 256 {
+				Console("合并%v过程中发生冲突", 1, commitId)
+			} else {
+				ConsoleError(err.Error(), 1)
+			}
+		} else {
+			ConsoleError(err.Error(), 1)
+		}
 	}
+
 	lines := lines(result)
 	lines = lines[:len(lines)-1]
 	return !strings.HasPrefix(lines[0], ConflictsString)
